@@ -7,8 +7,16 @@ const port = 3000;
 
 app.use(express.static(path.join(__dirname, "public")));
 
+// Middleware
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+app.use(express.json());
+
 // Http Logger
-app.use(morgan("combined"));
+// app.use(morgan("combined"));
 
 // // Templeta engine
 const viewPath = "resources/views";
@@ -26,6 +34,16 @@ app.get("/", (req, res) => {
 
 app.get("/news", (req, res) => {
   res.render("news");
+});
+
+app.get("/search", (req, res) => {
+  res.render("search");
+});
+
+app.post("/search", (req, res) => {
+  console.log(req.body);
+
+  res.send();
 });
 
 app.listen(port, () => {
