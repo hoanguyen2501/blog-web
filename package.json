@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --inspect src/index.js localhost:3000",
-    "build-css": "node-sass -w src/resources/scss/ -o src/public/css/"
+    "build-css": "node-sass -w src/resources/scss/ -o src/public/css/",
+    "execute-husky": "npx husky install && npx husky add .husky/pre-commit \"npx --no-install lint-staged\""
   },
   "repository": {
     "type": "git",
@@ -22,13 +23,24 @@
     "url": "https://github.com/hoanguyen2501/blog-web/issues"
   },
   "homepage": "https://github.com/hoanguyen2501/blog-web#readme",
+  "lint-staged": {
+    "src/**/*.{json,js,scss}": "prettier --single-quote --trailing-comma all --tab-width 4 --write"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
   "dependencies": {
     "express": "^4.18.2",
     "express-handlebars": "^7.0.4"
   },
   "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.0",
     "morgan": "^1.10.0",
     "node-sass": "^8.0.0",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.7"
   }
 }
