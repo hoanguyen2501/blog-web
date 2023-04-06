@@ -1,0 +1,12 @@
+services:
+  my_database:
+    image: mongo
+    container_name: mongo-nodejs
+    ports:
+      - 27027:27017
+    volumes:
+      - "./mongodb/config/mongod.conf:/data/configdb/mongod.conf"
+      - "./mongodb/data:/data/db"
+      - "./mongodb/log:/var/log/mongodb"
+    restart: always
+
