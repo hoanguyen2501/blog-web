@@ -24,7 +24,7 @@
     },
     "homepage": "https://github.com/hoanguyen2501/blog-web#readme",
     "lint-staged": {
-        "src/**/*.{json,js,scss,hbs}": "prettier --single-quote --trailing-comma all --tab-width 4 --write"
+        "src/**/*.{json,js,scss}": "prettier --single-quote --trailing-comma all --tab-width 4 --write"
     },
     "husky": {
         "hooks": {
@@ -34,7 +34,9 @@
     "dependencies": {
         "express": "^4.18.2",
         "express-handlebars": "^7.0.4",
-        "mongoose": "^7.0.3"
+        "method-override": "^3.0.0",
+        "mongoose": "^7.0.3",
+        "mongoose-slug-updater": "^3.3.0"
     },
     "devDependencies": {
         "husky": "^8.0.3",
