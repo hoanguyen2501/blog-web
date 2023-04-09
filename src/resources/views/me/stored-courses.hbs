@@ -1,16 +1,43 @@
-<div class="mt-4 mb-4">
-    <table class="table">
+<form class="mt-4 mb-4" name="container-form" method="POST" action="/courses/handle-form-action">
+    <div>
+        <h3>Khóa học của tôi</h3>
+        <a href="/me/trash/courses">Thùng rác ({{deletedCount}})</a>
+        <a href="/courses/create" class="btn btn-primary" role="button">Đăng khóa học mới</a>
+        <div class="mt-4 d-flex align-items-center">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="checkbox-all">
+                <label class="form-check-label" for="checkbox-all">
+                    Chọn tất cả
+                </label>
+            </div>
+
+            <select class="form-select checkbox-select-all-options" name="action" required>
+                <option selected value="">-- Chọn hành động --</option>
+                <option value="delete">Xóa</option>
+            </select>
+
+            <button class="btn btn-primary btn-sm checkbox-all-submit-btn disabled">Thực hiện</button>
+        </div>
+    </div>
+    {{#if courses}}
+    <table class="table mt-4 mb-4">
         <thead>
             <tr>
+                <th></th>
                 <th scope="col">#</th>
                 <th scope="col">Tên khóa học</th>
                 <th scope="col">Trình độ</th>
-                <th scope="col" colspan="2">Ngày tạo</th>
+                <th scope="col" colspan="2">Thời gian tạo</th>
             </tr>
         </thead>
         {{#each courses}}
         <tbody>
             <tr>
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input" name="courseIds[]" type="checkbox" value="{{this._id}}">
+                    </div>
+                </td>
                 <th scope="row">{{sum @index 1}}</th>
                 <td>{{this.name}}</td>
                 <td>{{this.level}}</td>
@@ -19,8 +46,8 @@
                     <a class="btn btn-primary" href="/courses/{{this._id}}/edit" role="button">
                         Sửa
                     </a>
-                    <a class="btn btn-danger" {{!-- href="/courses/{{this._id}}/delete" --}} href="" role="button"
-                        data-bs-toggle="modal" data-bs-target="#delete-course-modal" data-id="{{this._id}}">
+                    <a class="btn btn-danger" role="button" data-bs-toggle="modal" data-bs-target="#delete-course-modal"
+                        data-id="{{this._id}}">
                         Xóa
                     </a>
                 </td>
@@ -28,7 +55,13 @@
         </tbody>
         {{/each}}
     </table>
-</div>
+    {{else}}
+    <p class="text-center fs-4 mt-2">
+        Bạn chưa đăng khóa học nào.
+        <a href="/courses/create">Đăng khóa học</a>
+    </p>
+    {{/if}}
+</form>
 {{!-- Hidden delete form --}}
 <form method="POST" name="delete-course-form"></form>
 {{! Delete Confirmation }}
@@ -37,11 +70,11 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Xóa khóa học</h1>
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Xóa khóa học?</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Bạn có chắc muốn xóa khóa học này?
+                Bạn có chắc chắn muốn xóa (những) khóa học này?
             </div>
             <div class="modal-footer">
                 <button id="btn-delete-course" type="button" class="btn btn-danger">Xóa</button>
@@ -56,20 +89,130 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         var courseId;
+        var isCheckBoxAllSubmitBtnClicked = false;
         const deleteForm = document.forms['delete-course-form'];
+        const containerForm = document.forms['container-form'];
+        const checkboxAll = $("#checkbox-all");
+        const courseItemsCheckbox = $('input[name="courseIds[]"]');
+        const checkBoxAllSubmitBtn = $('.checkbox-all-submit-btn');
+        const checkboxSelectAllOptions = $('.checkbox-select-all-options');
+        const deleteCourseBtn = $('#btn-delete-course');
+        const deleteCourseModal = document.getElementById('delete-course-modal');
 
-        const deleteCourseModal = document.getElementById('delete-course-modal')
+        // When diaglog confirm clicked
         if (deleteCourseModal) {
             deleteCourseModal.addEventListener('show.bs.modal', (event) => {
                 const button = event.relatedTarget
                 courseId = button.getAttribute('data-id');
-            })
+            });
         }
 
-        const btnDeleteCourse = document.getElementById("btn-delete-course");
-        btnDeleteCourse.addEventListener("click", function (event) {
-            deleteForm.action = `/courses/${courseId}?_method=DELETE`;
-            deleteForm.submit();
-        })
+        // When delete course btn click
+        deleteCourseBtn.click(function (event) {
+            if (!isCheckBoxAllSubmitBtnClicked) {
+                deleteForm.action = `/courses/${courseId}?_method=DELETE`;
+                deleteForm.submit();
+            } else {
+                containerForm.submit();
+                window.localStorage.clear();
+            }
+        });
+
+        // Checkbox All changed
+        checkboxAll.change(function (event) {
+            var isCheckedAll = $(this).prop("checked");
+            courseItemsCheckbox.prop("checked", isCheckedAll);
+            toggleCheckBoxSubmitBtn();
+            // setLocalStorage();
+        });
+
+        // CourseItems Checkbox changed
+        courseItemsCheckbox.change(function (event) {
+            var isCheckedAll = courseItemsCheckbox.length === $('input[name="courseIds[]"]:checked').length;
+            checkboxAll.prop('checked', isCheckedAll);
+            toggleCheckBoxSubmitBtn();
+            // setLocalStorage();
+        });
+
+        // Checkbox Select Option changed 
+        checkboxSelectAllOptions.change(function (event) {
+            toggleCheckBoxSubmitBtn();
+            // setLocalStorage();
+        });
+
+        // Submit checkbox all submit button
+        checkBoxAllSubmitBtn.click(function (event) {
+            event.preventDefault();
+            isCheckBoxAllSubmitBtnClicked = true;
+        });
+
+        // Toggle disabled attribute of checkBoxSubmitBtn
+        function toggleCheckBoxSubmitBtn() {
+            var checkedBoxCount = $('input[name="courseIds[]"]:checked').length;
+            var optionValue = checkboxSelectAllOptions.find(':selected').val();
+            var isDisabled = (checkedBoxCount === 0) || (optionValue !== 'delete');
+            const _checkBoxAllSubmitBtn = checkBoxAllSubmitBtn.get(0);
+            if (!isDisabled) {
+                _checkBoxAllSubmitBtn.classList.remove('disabled');
+                toggleModalTargetForCheckboxSubmitBtn('data-bs-target', '#delete-course-modal');
+            } else {
+                _checkBoxAllSubmitBtn.classList.add('disabled');
+            }
+        }
+
+        // Toggle modal target for checkBoxSubmitBtn
+        function toggleModalTargetForCheckboxSubmitBtn(attr, value) {
+            checkBoxAllSubmitBtn.attr("data-bs-toggle", function (index, attr) {
+                return attr == "modal" ? null : "modal";
+            });
+
+            checkBoxAllSubmitBtn.attr(attr, function (index, attr) {
+                return attr == value ? null : value;
+            });
+        }
+
+        // Set value of select option, checkbox all, checkbox course item to localstorage
+        function setLocalStorage() {
+            const storage = {
+                isCheckboxAllChecked: $("#checkbox-all").prop('checked'),
+                checkboxCourseItemCount: $('input[name="courseIds[]"]:checked').length,
+                optionValue: $('.checkbox-select-all-options').find(':selected').val(),
+            };
+
+            window.localStorage.setItem("storage", JSON.stringify(storage));
+        }
+
+        // Get value from localstorage
+        function getLocalStorage() {
+            if (!(window.localStorage.getItem('storage') === null)) {
+                const localStorageValue = JSON.parse(window.localStorage.getItem('storage'));
+                console.log(localStorageValue);
+                return localStorageValue;
+            }
+            return null;
+        }
+
+        function toggleCheckBoxSubmitBtnWithLocalStorageValue() {
+            const storage = getLocalStorage();
+            if (!(storage === null)) {
+                var checkedBoxCount = storage.checkboxCourseItemCount;
+                var optionValue = storage.optionValue;
+                var isCheckboxAllChecked = storage.isCheckboxAllChecked;
+                var isDisabled = ((checkedBoxCount === 0) || (optionValue !== 'delete')) ||
+                    (isCheckboxAllChecked === false) || (optionValue !== 'delete');
+
+                var isEnabled = optionValue === 'delete' && (isCheckboxAllChecked === true || checkedBoxCount > 0);
+                const _checkBoxAllSubmitBtn = checkBoxAllSubmitBtn.get(0);
+                if (isEnabled) {
+                    _checkBoxAllSubmitBtn.classList.remove('disabled');
+                    toggleModalTargetForCheckboxSubmitBtn('data-bs-target', '#delete-course-modal');
+                } else {
+                    _checkBoxAllSubmitBtn.classList.add('disabled');
+                }
+            }
+        }
+        // Toggle 
+        // toggleCheckBoxSubmitBtnWithLocalStorageValue();
     })
+
 </script>

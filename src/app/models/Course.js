@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
-const slug = require('mongoose-slug-updater');
+const mongoose = require("mongoose");
+const slug = require("mongoose-slug-updater");
+const mongoose_delete = require("mongoose-delete");
 
 const Schema = mongoose.Schema;
-mongoose.plugin(slug);
 
 const Course = new Schema(
     {
@@ -10,10 +10,20 @@ const Course = new Schema(
         description: { type: String },
         image: { type: String },
         videoId: { type: String },
-        slug: { type: String, slug: 'name', unique: true },
+        slug: { type: String, slug: "name", unique: true },
         level: { type: String },
     },
-    { timestamps: true },
+    { timestamps: true }
 );
 
-module.exports = mongoose.model('Course', Course);
+const mongooseDeleteConfig = {
+    deletedAt: true,
+    overrideMethods: "all",
+};
+
+// Add plugin
+mongoose.plugin(slug);
+mongoose.plugin(mongoose_delete, mongooseDeleteConfig);
+
+mongoose.set("strictQuery", false);
+module.exports = mongoose.model("Course", Course);

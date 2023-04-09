@@ -1,4 +1,4 @@
-@import 'variables';
+@import "variables";
 
 h1 {
     color: $red-color;
@@ -10,4 +10,9 @@ h2 {
 
 .card-course-item {
     margin-bottom: 16px;
+}
+
+.checkbox-select-all-options {
+    width: 208px;
+    margin: 0 16px;
 }
